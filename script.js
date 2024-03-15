@@ -282,6 +282,8 @@ function claimScores() {
     // Show the modal for player 1 to claim score
     var player1Modal = new bootstrap.Modal(document.getElementById('player1Modal'));
     player1Modal.show();
+    $('#player1ModalLabel').text(localStorage.getItem('playerName') + ': Claim Your Score');
+
 }
 
 
@@ -568,7 +570,8 @@ function approveScore() {
         if(scoreCountEnd &&  scoreCountEndApproval2 == 1 ){
          
             $('#player2Modal').show();
-           
+                   $('#player2ModalLabel').text(localStorage.getItem('playerName2') + ': Claim Your Score');
+
         }
         console.log('scoreCountEndApproval2 ' + scoreCountEndApproval2) ;
         if(scoreCountEnd &&  scoreCountEndApproval2 > 1 ){

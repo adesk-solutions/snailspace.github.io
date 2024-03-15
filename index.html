@@ -13,21 +13,24 @@
     <script type="text/javascript" src='https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.3.min.js'></script>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <title>Your Card Game</title>
+    <title>Snailspace - Card Game</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/confetti-js@0.0.18/dist/index.min.js"></script>
 
 </head>
 
 <body>
+    <canvas id="my-canvas" style="position: absolute;z-index: -1;"></canvas>
+
     <div class="landing-page" id="landingPage">
-        <h1>Welcome to Your Card Game</h1>
+        <h1>Welcome to Snailspace</h1>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#gameSettingsModal">Start Game</button>
     </div>
 
     <div class="game-container" id="gridContainer">
         <div class="game-container-header">
             <div class="player" id="user">
-                <h3 id="name">User (You)</h3>
+                <h3 id="name">Player 1 (You)</h3>
                 <div class="user-cards player-card-grid"></div>
             </div>
             <div class="scores">
@@ -37,7 +40,8 @@
                 <h1 id="pcScore">0</h1>
             </div>
             <div class="player" id="pc">
-                <h3 class="text-end">PC</h3>
+                <!-- <h3 class="text-end">PC</h3> -->
+                <h3 id="name2">Player 2 (You)</h3>
                 <div class="pc-cards player-card-grid"></div>
             </div>
         </div>
@@ -46,6 +50,11 @@
             <div class="card-grid-inner"></div>
         </div>
     </div>
+
+
+    <div style="text-align: center; display:none " id="show_forend">
+<button type="button" class="btn btn-primary" onclick="claimScores()">Claim Scores</button>
+</div>
 
     <!-- Bootstrap Modal -->
     <div class="modal fade" id="gameSettingsModal" tabindex="-1" aria-labelledby="gameSettingsModalLabel"
@@ -61,22 +70,27 @@
                     <!-- Form inside modal -->
                     <form>
                         <div class="mb-3">
-                            <label for="playerName" class="form-label">Name</label>
-                            <input type="text" class="form-control" id="playerName" oninput="showHideError()">
+                            <label for="playerName" class="form-label">Player 1 name</label>
+                            <input type="text" class="form-control" id="playerName" oninput="showHideError()" value="Player 1">
                             <div id="nameError" class="text-danger">Name is required</div> <!-- Form error for Name -->
+                        </div>
+                        <div class="mb-3">
+                            <label for="playerName2" class="form-label">Player 2 name</label>
+                            <input type="text" class="form-control" id="playerName2" oninput="showHideError2()" value="Player 2">
+                            <!-- <div id="nameError2" class="text-danger">Name is required</div>  -->
                         </div>
                         <div class="mb-3">
                             <label for="dealerSelect" class="form-label">Dealer</label>
                             <select class="form-select" id="dealerSelect">
-                                <option value="player1" selected>Player 1</option>
-                                <option value="player2">Player 2</option>
+                                <option value="player1" >Player 1</option>
+                                <option value="player2" selected>Player 2</option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="scoreCountSelect" class="form-label">Score Count</label>
                             <select class="form-select" id="scoreCountSelect">
-                                <option value="atEnd" selected>At End</option>
-                                <option value="onThrow">On Throw</option>
+                                <option value="atEnd" >Scoring at the end</option>
+                                <option value="onThrow" selected>Scoring as you go</option>
                             </select>
                         </div>
                         <button type="button" id="startButton" onclick="saveGameSettings()"
@@ -94,6 +108,138 @@
     </div>
     <script src="script.js"></script>
 
+<!-- Player 1 Score Modal -->
+<div class="modal" id="player1Modal" tabindex="-1" aria-labelledby="player1ModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="player1ModalLabel">Player 1: Claim Your Score</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div style="text-align:center">
+            <label id="rejected_player1_reason" class="text-danger"></label>
+        </div>
+        <div class="modal-body">
+          <label for="player1Score">Enter your score:</label>
+          <input type="number" class="form-control" id="player1Score" value="0" min="0">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="submitScore('player')" id="player1SubmitButton">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Player 2 Score Modal -->
+  <div class="modal" id="player2Modal" tabindex="-1" aria-labelledby="player2ModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="player2ModalLabel">Player 2: Claim Your Score</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div style="text-align:center">
+            <label id="rejected_player2_reason" class="text-danger"></label>
+        </div>
+        <div class="modal-body">
+           
+          <label for="player2Score">Enter your score:</label>
+          <input type="number" class="form-control" id="player2Score" value="0" min="0">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="submitScore('pc')" id="player2SubmitButton">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Message Modal -->
+  <div class="modal" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="messageModalLabel">Message</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="messageText"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success" onclick="approveScore()">Approve</button>
+          <button type="button" class="btn btn-danger" onclick="rejectScore()">Reject</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+  <!-- Winner Announcement Modal -->
+<div class="modal" id="winnerModal" tabindex="-1" aria-labelledby="winnerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="winnerModalLabel">Winner Announcement</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="winnerInfo"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal with two buttons: "Show Grid" and "Claim Scores" -->
+<div class="modal" id="mainModal" tabindex="-1" aria-labelledby="mainModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mainModalLabel">Options</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <button type="button" class="btn btn-primary" onclick="showGrid()">Show Grid</button>
+                <button type="button" class="btn btn-primary" onclick="claimScores()">Claim Scores</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Function to attach event listeners to player 1 score input field
+function attachPlayer1ScoreEventListener() {
+    document.getElementById('player1Score').addEventListener('input', function() {
+        var player1ScoreInput = document.getElementById('player1Score').value;
+        var player1SubmitButton = document.getElementById('player1SubmitButton');
+        
+        // Check if input is not null and is a valid whole number
+        if (player1ScoreInput.trim() === '' || !Number.isInteger(Number(player1ScoreInput))) {
+            player1SubmitButton.disabled = true;
+        } else {
+            player1SubmitButton.disabled = false;
+        }
+    });
+}
+
+// Function to attach event listeners to player 2 score input field
+function attachPlayer2ScoreEventListener() {
+    document.getElementById('player2Score').addEventListener('input', function() {
+        var player2ScoreInput = document.getElementById('player2Score').value;
+        var player2SubmitButton = document.getElementById('player2SubmitButton');
+        
+        // Check if input is not null and is a valid whole number
+        if (player2ScoreInput.trim() === '' || !Number.isInteger(Number(player2ScoreInput))) {
+            player2SubmitButton.disabled = true;
+        } else {
+            player2SubmitButton.disabled = false;
+        }
+    });
+}
+
+$('.btn-close').on('click',function(){
+    $('.modal').modal('hide');
+        $('.modal-backdrop').remove();
+})
+</script>
 </body>
 
 </html>

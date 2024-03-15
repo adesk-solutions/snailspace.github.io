@@ -79,13 +79,24 @@ function saveGameSettings() {
         playerNameField.classList.add('is-invalid')
         return;
     }
+
+    let playerNameField2 = document.getElementById('playerName2');
+    let playerName2 = document.getElementById('playerName2').value;
+
+    if (playerName2 === '') {
+        // document.getElementById('nameError2').classList.add('show');
+        playerNameField2.classList.add('is-invalid')
+        return;
+    }
+
     let dealerSelect = document.getElementById('dealerSelect').value;
     let scoreCountSelect = document.getElementById('scoreCountSelect').value;
 
     // Save values to localStorage
-    localStorage.setItem('playerName', playerName);
+    localStorage.setItem('playerName', playerName);    
     localStorage.setItem('dealerSelect', dealerSelect);
     localStorage.setItem('scoreCountSelect', scoreCountSelect);
+    localStorage.setItem('playerName2', playerName2);
     $("#gameSettingsModal").modal("hide");
     if (scoreCountSelect === SCORE_COUNT_PROCESS.throw) {
         $('.scores').show();
@@ -98,7 +109,11 @@ function saveGameSettings() {
 
 function makeGrid() {
     const playerName = localStorage.getItem('playerName');
+    const playerName2 = localStorage.getItem('playerName2');
+
     document.getElementById('name').innerHTML = playerName;
+    document.getElementById('name2').innerHTML = playerName2;
+
     dealer = localStorage.getItem('dealerSelect') === 'player1';
     currentPlayer = localStorage.getItem('dealerSelect');
     scoreCountEnd = localStorage.getItem('scoreCountSelect') === SCORE_COUNT_PROCESS.end;
@@ -116,8 +131,8 @@ function makeGrid() {
     }
     grid.innerHTML = str;
 
-    makePlayerCardGrid(cardsArr.slice(0, 12), '.user-cards')
-    makePlayerCardGrid(cardsArr.slice(12, 24), '.pc-cards', true)
+    makePlayerCardGrid(cardsArr.slice(0, 13), '.user-cards','user')
+    makePlayerCardGrid(cardsArr.slice(13, 26), '.pc-cards','pc')
     setDealerClass()
     selectCenterCard()
     checkDealer()
@@ -127,8 +142,8 @@ function makePlayerCardGrid(array, id, isFaceDown) {
     let str = '';
     array.forEach((item) => {
         str += `
-            <div class="card-image ${isFaceDown ? 'pc':'user'}" onclick="removeCard(this, '${item}')">
-                <img src="cards/${isFaceDown ? 'facedown.jpg' : item + '.svg'}"/>
+            <div class="card-image ${isFaceDown == 'pc' ? 'pc':'user'}" onclick="removeCard(this, '${item}')">
+                <img src="cards/${ item + '.svg'}"/>
             </div>
             `;
     });
@@ -150,41 +165,145 @@ function removeCard(element, item) {
 
     element.parentNode.removeChild(element);
     dealer = !dealer;
-    setDealerClass()
+    setDealerClass();
     if (!dealer) {
-        setTimeout(() => {
+        //setTimeout(() => {
             const pcCards = document.querySelector('.pc-cards');
             const pcCard = pcCards.querySelector('.card-image');
             const event = new Event('click');
             if(pcCard !== null)
-            pcCard.dispatchEvent(event);
-        }, 1000);
+            console.log('test');
+            //pcCard.dispatchEvent(event);
+        //}, 1000);
     }
 
+    setTimeout(() => {
     if(scoreCountEnd){
         if (!spiral2DArr.length) {
-            calculateScoreAtEnd();
+            //calculateScoreAtEnd();
+            calculateManaullyScoreAtEnd();
         }
     } else {
         if(element.classList.contains('pc')){
-            calculateScore(position[0], position[1], USER.pc);
+            //calculateScore(position[0], position[1], USER.pc);
+             
+            calculateScoreManually('pc');
+             //}, 2000);
         }else {
-            calculateScore(position[0], position[1], USER.user);
+            //setTimeout(() => {
+            calculateScoreManually("player");
+        //}, 2000);
+            //calculateScore(position[0], position[1], USER.user);
         }
     }
+        }, 500);
 
+    // if(!spiral2DArr.length) {
+    //     $('#scoreBtn').hide();
+    //     $('#restartBtn').show();
+    //     if (pcScore > userScore) {
+    //         $('#pcScore').addClass('winner');
+
+    //         var winnerInfo = localStorage.getItem('playerName2') + " won with a total score of " + pcScore + ".";
+    //         document.getElementById('winnerInfo').textContent = winnerInfo;
+    //         var winnerModal = new bootstrap.Modal(document.getElementById('winnerModal'));
+    //         winnerModal.show();
+    //             $('#player2Modal').hide();
+    //             $('#player1Modal').hide();
+    //     } else if (userScore > pcScore) {
+    //         $('#userScore').addClass('winner');
+
+    //         var winnerInfo = localStorage.getItem('playerName') + " won with a total score of " + userScore + ".";
+    //         document.getElementById('winnerInfo').textContent = winnerInfo;
+    //         var winnerModal = new bootstrap.Modal(document.getElementById('winnerModal'));
+    //         winnerModal.show();
+    //         $('#player2Modal').hide();
+    //         $('#player1Modal').hide();
+    //     } else {
+    //         $('.scores').addClass('winner');
+    //     }
+    //     var confettiSettings = {"target":"my-canvas","max":"500","size":"2","animate":true,"props":["circle","square","triangle","line"],"colors":[[165,104,246],[230,61,135],[0,199,228],[253,214,126]],"clock":"25","rotate":true,"width":"1920","height":"945","start_from_edge":true,"respawn":true};
+    //     var confetti = new ConfettiGenerator(confettiSettings);
+    //     confetti.render();
+    // }
+}
+
+function endOfScoringAsYouGo(){
     if(!spiral2DArr.length) {
         $('#scoreBtn').hide();
         $('#restartBtn').show();
         if (pcScore > userScore) {
             $('#pcScore').addClass('winner');
+
+            var winnerInfo = localStorage.getItem('playerName2') + " won with a total score of " + pcScore + ".";
+            document.getElementById('winnerInfo').textContent = winnerInfo;
+            var winnerModal = new bootstrap.Modal(document.getElementById('winnerModal'));
+            winnerModal.show();
+                $('#player2Modal').hide();
+                $('#player1Modal').hide();
         } else if (userScore > pcScore) {
             $('#userScore').addClass('winner');
+
+            var winnerInfo = localStorage.getItem('playerName') + " won with a total score of " + userScore + ".";
+            document.getElementById('winnerInfo').textContent = winnerInfo;
+            var winnerModal = new bootstrap.Modal(document.getElementById('winnerModal'));
+            winnerModal.show();
+            $('#player2Modal').hide();
+            $('#player1Modal').hide();
         } else {
             $('.scores').addClass('winner');
         }
+        var confettiSettings = {"target":"my-canvas","max":"500","size":"2","animate":true,"props":["circle","square","triangle","line"],"colors":[[165,104,246],[230,61,135],[0,199,228],[253,214,126]],"clock":"25","rotate":true,"width":"1920","height":"945","start_from_edge":true,"respawn":true};
+        var confetti = new ConfettiGenerator(confettiSettings);
+        confetti.render();
     }
 }
+
+function calculateManaullyScoreAtEnd(){
+
+    $('#mainModal').show();
+
+
+}
+
+function showGrid() {
+    // Close all modals
+    $('#mainModal').hide();
+    $('#show_forend').show();
+    // Show the grid (implement your grid logic here)
+    console.log("Grid shown!");
+}
+
+// Function to initiate the process of claiming scores
+function claimScores() {
+    // Close all modals
+    $('#mainModal').hide(); 
+
+    // Show the modal for player 1 to claim score
+    var player1Modal = new bootstrap.Modal(document.getElementById('player1Modal'));
+    player1Modal.show();
+}
+
+
+// Function to handle the claim score process for player 1
+function submitPlayer1Score() {
+    //var player1Score = document.getElementById('player1Score').value;
+    // Logic for player 1's score submission
+
+    // Show the modal for player 2 to approve/reject
+    $('player2ApprovalModal').show();
+    
+}
+
+// Function to handle the approval/rejection process for player 2
+// function approvePlayer2Score() {
+//     var player2Score = document.getElementById('player2Score').value;
+//     // Logic for player 2's approval/rejection
+
+//     // Show the modal for player 2 to submit score
+//     var player2Modal = new bootstrap.Modal(document.getElementById('player2Modal'));
+//     player2Modal.show();
+// }
 
 
 // Function to create and shuffle a deck of cards
@@ -245,13 +364,14 @@ function checkDealer() {
             const pcCards = document.querySelector('.pc-cards');
             const pcCard = pcCards.querySelector('.card-image');
             const event = new Event('click');
-            pcCard.dispatchEvent(event);
+            //pcCard.dispatchEvent(event);
         }, 1000)
     }
 }
 
 function showHideError() {
-    const name = document.getElementById('playerName');
+    const name = document.getElementById('playerName');    
+
     if (name.value === '') {
         document.getElementById('nameError').classList.add('show')
         name.classList.add('is-invalid');
@@ -261,6 +381,17 @@ function showHideError() {
     }
 }
 
+function showHideError2() {
+    const name2 = document.getElementById('playerName2');    
+
+    if (name2.value === '') {
+        //document.getElementById('nameError2').classList.add('show')
+        name2.classList.add('is-invalid');
+    } else {
+        name2.classList.remove('is-invalid');
+        //document.getElementById('nameError2').classList.remove('show');
+    }
+}
 function hideShowSection(showSection) {
     if (showSection === 'one') {
         document.getElementById('landingPage').style.display = 'flex';
@@ -274,6 +405,8 @@ function hideShowSection(showSection) {
 
 function clearData() {
     localStorage.removeItem('playerName');
+    localStorage.removeItem('playerName2');
+
     localStorage.removeItem('dealerSelect');
     localStorage.removeItem('scoreCountSelect');
 }
@@ -292,6 +425,204 @@ function setScore(){
         $('#pcScore').html(pcScore);
 }
 
+/* =========== SCORES CALCULATION MANUALLY START=========== */
+
+
+var player1Total = 0;
+var player2Total = 0;
+var current_Player = '';
+function showAlert(message, type) {
+    var alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-' + type;
+    alertDiv.innerHTML = message;
+    document.body.appendChild(alertDiv);
+    setTimeout(function() {
+        alertDiv.remove();
+    }, 3000); // Remove the alert after 3 seconds
+}
+function showModal(modalId) {
+    var modal = new bootstrap.Modal(document.getElementById(modalId));
+    modal.show();
+}
+
+function claimScore(player) {
+    
+
+    if (player === 'player') {
+        showModal('player1Modal');   
+        $('#player1ModalLabel').text(localStorage.getItem('playerName') + ': Claim Your Score');
+        attachPlayer1ScoreEventListener();    
+        // var score = prompt("Player 1: Enter your score:");
+        // var approval = confirm("Player 2: Do you approve Player 1's score of " + score + "?");
+
+        // if (approval) {
+        //     showAlert("Score approved! Adding " + score + " to Player 1's total.", 'success');
+        //     player1Total += parseInt(score);
+        //     userScore += parseInt(score);
+        //     setScore();
+        //     console.log('player1Total ' + player1Total);
+        //     console.log('userScore ' + userScore);
+        //     hideModal('player1Modal');
+        // } else {
+        //     var reason = prompt("Enter reason for rejection (optional):");
+        //     showAlert("Player 2 rejected Player 1's score with reason: " + reason, 'danger');
+        //     claimScore(1); // Player 1 needs to claim score again
+        // }
+    } else if (player === 'pc') {
+        showModal('player2Modal');
+        $('#player2ModalLabel').text(localStorage.getItem('playerName2') + ': Claim Your Score');
+        attachPlayer2ScoreEventListener();
+
+        //var score = document.getElementById('player2Score').value;
+        //document.getElementById('messageText').innerHTML = "Player 1: Do you approve Player 2's score of " + score + "?";
+        // var score = prompt("Player 2: Enter your score:");
+        // var approval = confirm("Player 1: Do you approve Player 2's score of " + score + "?");
+
+        // if (approval) {
+        //     showAlert("Score approved! Adding " + score + " to Player 2's total.", 'success');
+        //     player2Total += parseInt(score);
+        //     pcScore += parseInt(score);
+        //     setScore();
+        //     console.log('player2Total ' + player2Total);
+        //     console.log('pcScore ' + pcScore);
+        // } else {
+        //     var reason = prompt("Enter reason for rejection (optional):");
+        //     showAlert("Player 1 rejected Player 2's score with reason: " + reason, 'danger');
+        //     claimScore(2); // Player 2 needs to claim score again
+        // }
+    }
+
+}
+
+
+function submitScore(player) {
+
+   
+
+    current_Player = player;
+    if (player === 'player') {
+        $('#player1Modal').hide();
+        showModal('messageModal');
+        var score = document.getElementById('player1Score').value;
+        document.getElementById('messageText').innerHTML = localStorage.getItem('playerName2') + ": Do you approve "+localStorage.getItem('playerName') +"'s score of " + score + "?";
+    } else if (player === 'pc') {
+        $('#player2Modal').hide();
+        showModal('messageModal');
+        var score = document.getElementById('player2Score').value;
+        document.getElementById('messageText').innerHTML = localStorage.getItem('playerName')  + ": Do you approve "+localStorage.getItem('playerName2') +"'s score of " + score + "?";
+    }
+}
+
+// var scoreCountEndApproval1 = 0;
+ var scoreCountEndApproval2 = 0;
+
+function approveScore() {
+    var score = document.getElementById(current_Player === 'player' ? 'player1Score' : 'player2Score').value;
+    if (current_Player === 'player') {
+        player1Total += parseInt(score, 10);
+        document.getElementById('player1Score').value = '0';
+        userScore += parseInt(score);
+        setScore();
+        console.log('player1Total ' + player1Total);
+        console.log('userScore ' + userScore);   
+        $('#rejected_player2_reason,#rejected_player1_reason').text('')     ;
+
+        // console.log('scoreCountEnd ' + scoreCountEnd);
+  
+        // if(scoreCountEnd){
+        //     // $('#player1Modal').hide();
+        //     // $('#player2Modal').show();
+        //     //$('.scores').show();
+        // }
+        
+    } else {
+        player2Total += parseInt(score, 10);
+        document.getElementById('player2Score').value = '0';
+        pcScore += parseInt(score);
+        setScore();
+        console.log('player2Total ' + player2Total);
+        console.log('pcScore ' + pcScore);
+        // console.log('scoreCountEnd ' + scoreCountEnd);
+
+        $('#rejected_player2_reason,#rejected_player1_reason').text('')        ;
+        if(scoreCountEnd ){
+            //$('#player2Modal').hide();
+            //$('#player1Modal').show();            
+            $('.scores').show();
+            //endOfScoringAsYouGo();
+        }
+    }
+    $('#messageModal .modal-footer').hide();
+    var message = "Score approved! Adding " + score + " to " + (current_Player === 'player' ? "Player 1's" : "Player 2's") + " total.";
+    document.getElementById('messageText').innerHTML = message;
+    setTimeout(function() {
+        $('#messageModal').hide();
+        $('.modal').modal('hide');
+        $('.modal-backdrop').remove();
+        $('#messageModal .modal-footer').show();
+
+        if(scoreCountEnd == false){
+        endOfScoringAsYouGo();
+        }
+        scoreCountEndApproval2++;
+        if(scoreCountEnd &&  scoreCountEndApproval2 == 1 ){
+         
+            $('#player2Modal').show();
+           
+        }
+        console.log('scoreCountEndApproval2 ' + scoreCountEndApproval2) ;
+        if(scoreCountEnd &&  scoreCountEndApproval2 > 1 ){
+         
+            endOfScoringAsYouGo();
+            scoreCountEndApproval2++;
+        }
+
+    }, 2000); // Hide the modal after 2 seconds
+}
+
+function rejectScore() {
+    var reason = prompt("Enter reason for rejection (optional):");    
+    //document.getElementById('messageText').innerHTML = message;
+  
+    setTimeout(function() {
+        if (current_Player === 'player') {
+            $('#messageModal').hide();
+            var message = localStorage.getItem('playerName2') + " rejected "+localStorage.getItem('playerName') +"'s score with reason: " + reason;
+            showModal('player1Modal');
+            $('#rejected_player1_reason').text(message);
+        } else {
+            $('#messageModal').hide();
+            var message = localStorage.getItem('playerName') + " rejected "+localStorage.getItem('playerName2') +"'s score with reason: " + reason;
+            showModal('player2Modal');
+            $('#rejected_player2_reason').text(message);
+        }
+    }, 2000); // Show respective modal after 2 seconds
+}
+
+function calculateScoreManually(type){
+    setTimeout(function(){
+
+    },1000);
+    //claimScore(type);
+    console.log('type ' + type);
+    //console.log('type ' + USER.pc);
+    if( type == "pc" ){
+
+        claimScore('pc'); // Start with Player 1's turn
+        
+
+    }else{
+        claimScore('player'); // Start with Player 1's turn
+
+
+    }
+   
+
+  
+
+}
+
+/* =========== SCORES CALCULATION MANUALLY END=========== */
 /* =========== SCORES CALCULATION =========== */
 function calculateScore(row, col, type) {
     let score = 0;
@@ -737,3 +1068,4 @@ function getFlushScoreEnd(grid) {
 function restartGame() {
     window.location.reload();
 }
+
